@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maazm7d.termuxhub.domain.model.HallOfFameMember
 import com.maazm7d.termuxhub.domain.usecase.GetHallOfFameMembersUseCase
+import com.maazm7d.termuxhub.domain.usecase.RefreshHallOfFameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
