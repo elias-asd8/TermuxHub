@@ -6,9 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material3.*
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,12 +20,11 @@ fun SavedScreen(
     onOpenDetails: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val refreshState = rememberPullRefreshState(
-        refreshing = uiState.isRefreshing,
-        onRefresh = { viewModel.refresh() }
-    )
 
-    Box(modifier = Modifier.pullRefresh(refreshState)) {
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,7 +67,9 @@ fun SavedScreen(
             )
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(
-                modifier = Modifier.width(120.dp).align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .width(120.dp)
+                    .align(Alignment.CenterHorizontally),
                 thickness = 1.dp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
             )
@@ -116,11 +115,5 @@ fun SavedScreen(
                 }
             }
         }
-
-        PullRefreshIndicator(
-            refreshing = uiState.isRefreshing,
-            state = refreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 }
