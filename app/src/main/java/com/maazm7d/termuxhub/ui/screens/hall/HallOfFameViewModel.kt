@@ -30,14 +30,15 @@ class HallOfFameViewModel @Inject constructor(
     }
 
     private fun loadMembers() {
-        viewModelScope.launch {
-            _uiState.value = HallOfFameUiState.Loading
-            try {
-                val members = getHallOfFameMembersUseCase()
+    viewModelScope.launch {
+        _uiState.value = HallOfFameUiState.Loading
+        try {
+            getHallOfFameMembersUseCase().collect { members ->
                 _uiState.value = HallOfFameUiState.Success(members)
-            } catch (e: Exception) {
-                _uiState.value = HallOfFameUiState.Error(e.message ?: "Failed to load members")
             }
+        } catch (e: Exception) {
+            _uiState.value = HallOfFameUiState.Error(e.message ?: "Failed to load members")
         }
     }
+  }
 }
