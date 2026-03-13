@@ -3,15 +3,16 @@ package com.maazm7d.termuxhub.ui.screens.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullRefreshIndicator
+import androidx.compose.material3.pulltorefresh.pullRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,7 +35,6 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onOpenDetails: (String) -> Unit
 ) {
-
     val uiState by viewModel.uiState.collectAsState()
     val starsMap by viewModel.starsMap.collectAsState()
 
@@ -45,30 +45,12 @@ fun HomeScreen(
     var sortMenuExpanded by remember { mutableStateOf(false) }
     var categoryMenuExpanded by remember { mutableStateOf(false) }
 
-    val listState = rememberSaveable(
-        saver = listSaver(
-            save = { listOf(it.firstVisibleItemIndex, it.firstVisibleItemScrollOffset) },
-            restore = { LazyListState(firstVisibleItemIndex = it[0], firstVisibleItemScrollOffset = it[1]) }
-        )
-    ) { LazyListState() }
+    val listState = rememberLazyListState()
 
-    var lastSort by rememberSaveable { mutableStateOf(currentSort) }
-    var lastCategory by rememberSaveable { mutableStateOf(selectedCategoryIndex) }
-    var lastQuery by rememberSaveable { mutableStateOf(searchQuery.value) }
-
-    LaunchedEffect(currentSort, selectedCategoryIndex, searchQuery.value) {
-        val sortChanged = lastSort != currentSort
-        val categoryChanged = lastCategory != selectedCategoryIndex
-        val queryChanged = lastQuery != searchQuery.value
-
-        if (sortChanged || categoryChanged || queryChanged) {
-            listState.scrollToItem(0)
-        }
-
-        lastSort = currentSort
-        lastCategory = selectedCategoryIndex
-        lastQuery = searchQuery.value
-    }
+    val refreshState = rememberPullRefreshState(
+        refreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    )
 
     val categoryCounts = remember(uiState.tools) { uiState.tools.groupingBy { it.category }.eachCount() }
     val categories = remember(uiState.tools, categoryCounts) {
@@ -81,10 +63,8 @@ fun HomeScreen(
                 val matchesQuery = searchQuery.value.isBlank() ||
                         tool.name.contains(searchQuery.value, true) ||
                         tool.description.contains(searchQuery.value, true)
-
                 val matchesCategory = selectedCategoryIndex == 0 ||
                         tool.category.equals(categories[selectedCategoryIndex].first, true)
-
                 matchesQuery && matchesCategory
             }
             .let { list ->
@@ -97,14 +77,13 @@ fun HomeScreen(
             }
     }
 
-    Scaffold { padding ->
+    Box(modifier = Modifier.pullRefresh(refreshState)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 6.dp)
         ) {
-
-            // SEARCH + SORT
+            // Search + sort row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -112,12 +91,10 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SearchBar(queryState = searchQuery, modifier = Modifier.weight(1f))
-
                 Box {
                     IconButton(onClick = { sortMenuExpanded = true }) {
                         Icon(Icons.Default.FilterList, contentDescription = "Sort")
                     }
-
                     DropdownMenu(
                         expanded = sortMenuExpanded,
                         onDismissRequest = { sortMenuExpanded = false }
@@ -140,7 +117,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // CATEGORY ROW
+            // Category row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -149,7 +126,6 @@ fun HomeScreen(
                     IconButton(onClick = { categoryMenuExpanded = true }) {
                         Icon(Icons.Default.GridView, contentDescription = "Categories")
                     }
-
                     DropdownMenu(
                         expanded = categoryMenuExpanded,
                         onDismissRequest = { categoryMenuExpanded = false }
@@ -178,22 +154,41 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // TOOL LIST
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 12.dp)
-            ) {
-                items(filteredTools, key = { it.id }) { tool ->
-                    ToolCard(
-                        tool = tool,
-                        stars = starsMap[tool.id],
-                        onOpenDetails = onOpenDetails,
-                        onToggleFavorite = viewModel::toggleFavorite,
-                        onSave = viewModel::toggleFavorite
-                    )
+            if (!uiState.error.isNullOrBlank()) {
+                Text(
+                    text = uiState.error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            if (uiState.isLoading && filteredTools.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 12.dp)
+                ) {
+                    items(filteredTools, key = { it.id }) { tool ->
+                        ToolCard(
+                            tool = tool,
+                            stars = starsMap[tool.id],
+                            onOpenDetails = onOpenDetails,
+                            onToggleFavorite = { viewModel.toggleFavorite(it) },
+                            onSave = { viewModel.toggleFavorite(it) }
+                        )
+                    }
                 }
             }
         }
+
+        PullRefreshIndicator(
+            refreshing = uiState.isRefreshing,
+            state = refreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
