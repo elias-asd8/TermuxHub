@@ -19,7 +19,8 @@ sealed interface HallOfFameUiState {
 
 @HiltViewModel
 class HallOfFameViewModel @Inject constructor(
-    private val getHallOfFameMembersUseCase: GetHallOfFameMembersUseCase
+    private val getHallOfFameMembersUseCase: GetHallOfFameMembersUseCase,
+    private val refreshHallOfFameUseCase: RefreshHallOfFameUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HallOfFameUiState>(HallOfFameUiState.Loading)
@@ -31,13 +32,15 @@ class HallOfFameViewModel @Inject constructor(
 
     private fun loadMembers() {
     viewModelScope.launch {
+
         _uiState.value = HallOfFameUiState.Loading
-        try {
-            getHallOfFameMembersUseCase().collect { members ->
-                _uiState.value = HallOfFameUiState.Success(members)
-            }
-        } catch (e: Exception) {
-            _uiState.value = HallOfFameUiState.Error(e.message ?: "Failed to load members")
+
+        // Fetch latest data from network
+        refreshHallOfFameUseCase()
+
+        // Observe cached database data
+        getHallOfFameMembersUseCase().collect { members ->
+            _uiState.value = HallOfFameUiState.Success(members)
         }
     }
   }
