@@ -9,9 +9,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -47,11 +45,6 @@ fun HomeScreen(
 
     val listState = rememberLazyListState()
 
-    val refreshState = rememberPullRefreshState(
-        refreshing = uiState.isRefreshing,
-        onRefresh = { viewModel.refresh() }
-    )
-
     val categoryCounts = remember(uiState.tools) { uiState.tools.groupingBy { it.category }.eachCount() }
     val categories = remember(uiState.tools, categoryCounts) {
         listOf("All" to uiState.tools.size) + categoryCounts.keys.sorted().map { it to (categoryCounts[it] ?: 0) }
@@ -77,7 +70,10 @@ fun HomeScreen(
             }
     }
 
-    Box(modifier = Modifier.pullRefresh(refreshState)) {
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -184,11 +180,5 @@ fun HomeScreen(
                 }
             }
         }
-
-        PullRefreshIndicator(
-            refreshing = uiState.isRefreshing,
-            state = refreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
     }
 }
