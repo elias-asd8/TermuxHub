@@ -79,6 +79,14 @@
 
 <p>Only these resources are consumed.</p>
 
+<h2>Data Pipeline</h2>
+
+<p>
+  For a detailed explanation of how metadata is processed, synchronized via GitHub Actions,
+  and delivered to the Android application, see:
+  <a href="DATA_PIPELINE.md">DATA_PIPELINE.md</a>
+</p>
+
 <h2>Contributing &amp; Indexing Your Own Tool</h2>
 <p>
   See:
@@ -88,7 +96,7 @@
 <h2>Termux Hub Badge</h2>
 
 <p>
-  Tool maintainers can add an Open-in Termux Hub badgeto their README.
+  Tool maintainers can add an Open-in Termux Hub badge to their README.
   Clicking the badge opens the tool directly in the TermuxHub app.
 </p>
 
