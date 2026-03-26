@@ -1,13 +1,13 @@
 package com.maazm7d.termuxhub.ui.screens.home
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -16,15 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.maazm7d.termuxhub.domain.model.getPublishedDate
-import com.maazm7d.termuxhub.ui.components.CategoryChips
 import com.maazm7d.termuxhub.ui.components.SearchBar
 import com.maazm7d.termuxhub.ui.components.ToolCard
 
 enum class SortType(val label: String) {
-    NEWEST_FIRST("Newest first"),
-    OLDEST_FIRST("Oldest first"),
-    MOST_STARRED("Most starred"),
-    LEAST_STARRED("Least starred")
+    NEWEST_FIRST("Newest"),
+    OLDEST_FIRST("Oldest"),
+    MOST_STARRED("Most ⭐"),
+    LEAST_STARRED("Least ⭐")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +32,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onOpenDetails: (String) -> Unit
 ) {
+
     val uiState by viewModel.uiState.collectAsState()
     val starsMap by viewModel.starsMap.collectAsState()
 
@@ -40,32 +40,57 @@ fun HomeScreen(
     var selectedCategoryIndex by rememberSaveable { mutableStateOf(0) }
     var currentSort by rememberSaveable { mutableStateOf(SortType.NEWEST_FIRST) }
 
-    var sortMenuExpanded by remember { mutableStateOf(false) }
-    var categoryMenuExpanded by remember { mutableStateOf(false) }
-
     val listState = rememberLazyListState()
 
-    val categoryCounts = remember(uiState.tools) { uiState.tools.groupingBy { it.category }.eachCount() }
-    val categories = remember(uiState.tools, categoryCounts) {
-        listOf("All" to uiState.tools.size) + categoryCounts.keys.sorted().map { it to (categoryCounts[it] ?: 0) }
+    val categoryCounts = remember(uiState.tools) {
+        uiState.tools.groupingBy { it.category }.eachCount()
     }
 
-    val filteredTools = remember(uiState.tools, searchQuery.value, selectedCategoryIndex, currentSort, starsMap) {
+    val categories = remember(uiState.tools, categoryCounts) {
+        listOf("All" to uiState.tools.size) +
+                categoryCounts.keys.sorted().map { it to (categoryCounts[it] ?: 0) }
+    }
+
+    val filteredTools = remember(
+        uiState.tools,
+        searchQuery.value,
+        selectedCategoryIndex,
+        currentSort,
+        starsMap
+    ) {
+
         uiState.tools
             .filter { tool ->
-                val matchesQuery = searchQuery.value.isBlank() ||
-                        tool.name.contains(searchQuery.value, true) ||
-                        tool.description.contains(searchQuery.value, true)
-                val matchesCategory = selectedCategoryIndex == 0 ||
-                        tool.category.equals(categories[selectedCategoryIndex].first, true)
+
+                val matchesQuery =
+                    searchQuery.value.isBlank() ||
+                            tool.name.contains(searchQuery.value, true) ||
+                            tool.description.contains(searchQuery.value, true)
+
+                val matchesCategory =
+                    selectedCategoryIndex == 0 ||
+                            tool.category.equals(
+                                categories[selectedCategoryIndex].first,
+                                true
+                            )
+
                 matchesQuery && matchesCategory
             }
             .let { list ->
+
                 when (currentSort) {
-                    SortType.NEWEST_FIRST -> list.sortedByDescending { it.getPublishedDate() }
-                    SortType.OLDEST_FIRST -> list.sortedBy { it.getPublishedDate() }
-                    SortType.MOST_STARRED -> list.sortedByDescending { starsMap[it.id] ?: 0 }
-                    SortType.LEAST_STARRED -> list.sortedBy { starsMap[it.id] ?: 0 }
+
+                    SortType.NEWEST_FIRST ->
+                        list.sortedByDescending { it.getPublishedDate() }
+
+                    SortType.OLDEST_FIRST ->
+                        list.sortedBy { it.getPublishedDate() }
+
+                    SortType.MOST_STARRED ->
+                        list.sortedByDescending { starsMap[it.id] ?: 0 }
+
+                    SortType.LEAST_STARRED ->
+                        list.sortedBy { starsMap[it.id] ?: 0 }
                 }
             }
     }
@@ -74,83 +99,102 @@ fun HomeScreen(
         isRefreshing = uiState.isRefreshing,
         onRefresh = { viewModel.refresh() }
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 6.dp)
         ) {
-            // Search + sort row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SearchBar(queryState = searchQuery, modifier = Modifier.weight(1f))
-                Box {
-                    IconButton(onClick = { sortMenuExpanded = true }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Sort")
-                    }
-                    DropdownMenu(
-                        expanded = sortMenuExpanded,
-                        onDismissRequest = { sortMenuExpanded = false }
-                    ) {
-                        SortType.values().forEach { sort ->
-                            DropdownMenuItem(
-                                text = { Text(sort.label) },
-                                leadingIcon = {
-                                    if (currentSort == sort) Icon(Icons.Default.Check, null)
-                                },
-                                onClick = {
-                                    currentSort = sort
-                                    sortMenuExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
 
-            // Category row
-            Row(
+            SearchBar(
+                queryState = searchQuery,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 2.dp
             ) {
-                Box {
-                    IconButton(onClick = { categoryMenuExpanded = true }) {
-                        Icon(Icons.Default.GridView, contentDescription = "Categories")
-                    }
-                    DropdownMenu(
-                        expanded = categoryMenuExpanded,
-                        onDismissRequest = { categoryMenuExpanded = false }
+
+                Column(
+                    modifier = Modifier.padding(10.dp)
+                ) {
+
+                    Text(
+                        text = "Sort",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
+
+                        SortType.values().forEachIndexed { index, sort ->
+
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = SortType.values().size
+                                ),
+                                selected = currentSort == sort,
+                                onClick = { currentSort = sort },
+                                label = { Text(sort.label) }
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Text(
+                        text = "Categories",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState())
+                    ) {
+
                         categories.forEachIndexed { index, item ->
-                            DropdownMenuItem(
-                                text = { Text("${item.first} (${item.second})") },
-                                leadingIcon = {
-                                    if (selectedCategoryIndex == index) Icon(Icons.Default.Check, null)
+
+                            FilterChip(
+                                selected = selectedCategoryIndex == index,
+                                onClick = { selectedCategoryIndex = index },
+
+                                label = {
+                                    Text("${item.first} (${item.second})")
                                 },
-                                onClick = {
-                                    selectedCategoryIndex = index
-                                    categoryMenuExpanded = false
-                                }
+
+                                leadingIcon =
+                                if (selectedCategoryIndex == index) {
+                                    {
+                                        Icon(
+                                            Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                } else null,
+
+                                modifier = Modifier.padding(end = 6.dp)
                             )
                         }
                     }
                 }
-
-                CategoryChips(
-                    chips = categories,
-                    selectedIndex = selectedCategoryIndex,
-                    onChipSelected = { selectedCategoryIndex = it }
-                )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
 
             if (!uiState.error.isNullOrBlank()) {
+
                 Text(
                     text = uiState.error!!,
                     color = MaterialTheme.colorScheme.error,
@@ -159,16 +203,24 @@ fun HomeScreen(
             }
 
             if (uiState.isLoading && filteredTools.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator()
                 }
+
             } else {
+
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 12.dp)
                 ) {
+
                     items(filteredTools, key = { it.id }) { tool ->
+
                         ToolCard(
                             tool = tool,
                             stars = starsMap[tool.id],
