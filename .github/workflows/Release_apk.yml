@@ -1,4 +1,4 @@
-name: Build Release APK
+name: build without latest tag
 
 on:
   workflow_dispatch:
