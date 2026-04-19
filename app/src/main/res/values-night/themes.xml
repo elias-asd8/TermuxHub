@@ -9,7 +9,9 @@
         <!-- Edge-to-edge -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+
         <item name="android:windowAnimationStyle">@null</item>
+
     </style>
 
 </resources>

@@ -1,5 +1,8 @@
 package com.maazm7d.termuxhub.ui.screens.splash
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -18,37 +21,45 @@ fun SplashScreen(
     onFinished: () -> Unit
 ) {
     val ready by viewModel.ready.collectAsState()
+    var visible by remember { mutableStateOf(true) }
 
     LaunchedEffect(ready) {
         if (ready) {
+            visible = false
+            kotlinx.coroutines.delay(300)
             onFinished()
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
+    AnimatedVisibility(
+        visible = visible,
+        exit = fadeOut() + scaleOut(targetScale = 0.95f)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            Text(
-                text = ">_",
-                fontSize = 96.sp,
-                fontWeight = FontWeight.ExtraBold,
-                fontFamily = FontFamily.Monospace,
-                color = Color.Black
-            )
+                Text(
+                    text = ">_",
+                    fontSize = 96.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Termux Hub",
-                fontSize = 28.sp,
-                fontFamily = FontFamily.Monospace,
-                color = Color.Black
-            )
+                Text(
+                    text = "Termux Hub",
+                    fontSize = 28.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black
+                )
+            }
         }
     }
 }
