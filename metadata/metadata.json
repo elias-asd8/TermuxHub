@@ -1822,7 +1822,68 @@
       "repo": "https://github.com/fph/bastet",
       "author": "fph",
       "requireRoot": false,
-      "publishedAt": "25-03-2026"
+      "publishedAt": "25-03-2026",
+    {
+      "id": "windows-xp-qemu",
+      "name": "Windows XP for Termux",
+      "description": "A Windows XP VM for Termux via QEMU.",
+      "category": "Utilities & Dev",
+      "repo": "https://github.com/elias-asd8/Windows-XP-for-termux-via-qemu",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    },
+    {
+      "id": "windows-7-vm",
+      "name": "Windows 7 VM",
+      "description": "Windows 7 Virtual Machine setup for Termux.",
+      "category": "Utilities & Dev",
+      "repo": "https://github.com/elias-asd8/Windows-7-VM-for-Termux",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    },
+    {
+      "id": "gnome-vibes",
+      "name": "GNOME Vibes",
+      "description": "GNOME-like desktop experience without full GNOME.",
+      "category": "TUI Apps",
+      "repo": "https://github.com/elias-asd8/GNOME-vibes-without-GNOME-Termux",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    },
+    {
+      "id": "kali-vm",
+      "name": "Kali VM",
+      "description": "Kali Linux Virtual Machine for Termux environment.",
+      "category": "Exploitation Tools",
+      "repo": "https://github.com/elias-asd8/Kali-VM-for-Termux",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    },
+    {
+      "id": "arch-kde-plasma",
+      "name": "Arch KDE Plasma",
+      "description": "KDE Plasma desktop on Arch Linux ARM.",
+      "category": "TUI Apps",
+      "repo": "https://github.com/elias-asd8/Arch-Termux-KDE-Plasma",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    },
+    {
+      "id": "de-installer-rootless",
+      "name": "DE Installer (Rootless)",
+      "description": "Install Desktop Environments in Termux without root.",
+      "category": "Utilities & Dev",
+      "repo": "https://github.com/elias-asd8/DE-Installer-for-Termux-without-root",
+      "author": "elias-asd8",
+      "requireRoot": false,
+      "publishedAt": "25-04-2026"
+    }
+
     }
   ]
 }
